@@ -1,6 +1,7 @@
 import json
 import os
 import glob
+from datetime import datetime
 
 def load_targets(filename="targets.txt"):
     """Loads target conversation titles from a text file."""
@@ -9,8 +10,13 @@ def load_targets(filename="targets.txt"):
         return set()
     
     with open(filename, "r", encoding="utf-8") as f:
-        # Strip whitespace and ignore empty lines
         return {line.strip() for line in f if line.strip()}
+
+def format_timestamp(unix_timestamp):
+    """Converts unix timestamp to readable string."""
+    if not unix_timestamp:
+        return "Unknown Time"
+    return datetime.fromtimestamp(unix_timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
 def extract_conversations():
     target_titles = load_targets()
@@ -57,23 +63,27 @@ def extract_conversations():
                         if text.strip():
                             messages.append({"role": role, "time": create_time, "text": text})
                 
+                # Chronological sort
                 messages.sort(key=lambda x: x["time"])
                 
                 for m in messages:
-                    sender = "User" if m["role"] == "user" else "ChatGPT"
-                    markdown_lines.append(f"**{sender}:**\n{m['text']}\n\n")
+                    readable_time = format_timestamp(m['time'])
+                    if m["role"] == "user":
+                        markdown_lines.append(f"### 👤 You asked ({readable_time}):\n{m['text']}\n\n")
+                    else:
+                        markdown_lines.append(f"### 🤖 ChatGPT replied ({readable_time}):\n{m['text']}\n\n")
                 
                 markdown_lines.append("---\n\n")
 
     if processed_count == 0:
-        print("\nNo matching conversations found. Check your targets.txt and JSON files.")
+        print("\nNo matching conversations found.")
         return
 
     output_filename = "Extracted_ChatGPT_Chats.md"
     with open(output_filename, "w", encoding="utf-8") as out_f:
         out_f.write("".join(markdown_lines))
 
-    print(f"\n✅ Success! {processed_count} matching conversations extracted.")
+    print(f"\n✅ Success! {processed_count} matching conversations extracted with timestamps.")
     print(f"Saved to: {os.path.abspath(output_filename)}")
 
 if __name__ == "__main__":
