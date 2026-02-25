@@ -1,6 +1,7 @@
 import json
 import os
 import glob
+import re
 from datetime import datetime
 
 def load_targets(filename="targets.txt"):
@@ -18,6 +19,14 @@ def format_timestamp(unix_timestamp):
         return "Unknown Time"
     return datetime.fromtimestamp(unix_timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
+def slugify(text):
+    """Convert text to GitHub-style URL slug."""
+    # Convert to lowercase, replace spaces/special chars with hyphens
+    text = text.lower()
+    text = re.sub(r'[^\w\s-]', '', text)  # Remove special chars except spaces and hyphens
+    text = re.sub(r'[-\s]+', '-', text)    # Replace spaces/multiple hyphens with single hyphen
+    return text.strip('-')
+
 def extract_conversations():
     target_titles = load_targets()
     if not target_titles:
@@ -29,6 +38,8 @@ def extract_conversations():
         return
 
     markdown_lines = []
+    toc_lines = []
+    processed_titles = []  # Track all processed titles for TOC
     processed_count = 0
 
     for file_path in file_paths:
@@ -45,6 +56,12 @@ def extract_conversations():
             
             if title in target_titles:
                 processed_count += 1
+                processed_titles.append(title)
+                
+                # Add to TOC
+                slug = slugify(title)
+                toc_lines.append(f"1. [{title}](#{slug})")
+                
                 markdown_lines.append(f"# {title}\n\n")
                 
                 messages = []
@@ -79,9 +96,21 @@ def extract_conversations():
         print("\nNo matching conversations found.")
         return
 
+    # Generate output with TOC at the top
+    output_lines = []
+    
+    # Add TOC header
+    if toc_lines:
+        output_lines.append("# Table of Contents\n\n")
+        output_lines.append("\n".join(toc_lines))
+        output_lines.append("\n\n---\n\n")
+    
+    # Add main content
+    output_lines.extend(markdown_lines)
+
     output_filename = "Extracted_ChatGPT_Chats.md"
     with open(output_filename, "w", encoding="utf-8") as out_f:
-        out_f.write("".join(markdown_lines))
+        out_f.write("".join(output_lines))
 
     print(f"\n✅ Success! {processed_count} matching conversations extracted with timestamps.")
     print(f"Saved to: {os.path.abspath(output_filename)}")
