@@ -6,6 +6,7 @@ __pycache__/
 # 🛑 CRITICAL: Ignore user data and outputs to prevent privacy leaks!
 conversations*.json
 targets.txt
+!targets.txt.example
 Extracted_ChatGPT_Chats.md
 
 # OS generated files

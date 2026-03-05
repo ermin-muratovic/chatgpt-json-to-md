@@ -1,0 +1,7 @@
+# Add the exact titles of the ChatGPT conversations you want to extract, one per line.
+# Lines starting with # are ignored.
+#
+# Example:
+My First Chat
+Architecture Brainstorming
+Weekly Meeting Notes
