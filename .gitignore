@@ -8,6 +8,9 @@ conversations*.json
 targets.txt
 !targets.txt.example
 Extracted_ChatGPT_Chats.md
+config.json
+!config.json.example
+output/
 
 # OS generated files
 .DS_Store
